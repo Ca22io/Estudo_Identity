@@ -9,9 +9,6 @@
 
     @if (User?.Identity?.IsAuthenticated ?? false)
     {
-        <div class="alert alert-success mb-4" role="alert">
-            <strong>Olá, @User.Identity!.Name!</strong> Você está autenticado.
-        </div>
         <div class="d-flex justify-content-center gap-2 mb-4">
             <a class="btn btn-primary" asp-action="Gerenciar">Gerenciar conta</a>
             <form asp-action="Logout" method="post" class="d-inline">
