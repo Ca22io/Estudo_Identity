@@ -13,8 +13,8 @@
             <strong>Olá, @User.Identity!.Name!</strong> Você está autenticado.
         </div>
         <div class="d-flex justify-content-center gap-2 mb-4">
-            <a class="btn btn-primary" asp-area="Identity" asp-page="/Home/Gerenciar">Gerenciar conta</a>
-            <form asp-area="Identity" asp-page="/Home/Logout" method="post" class="d-inline">
+            <a class="btn btn-primary" asp-action="Gerenciar">Gerenciar conta</a>
+            <form asp-action="Logout" method="post" class="d-inline">
                 <button type="submit" class="btn btn-outline-secondary">Sair</button>
             </form>
         </div>
@@ -22,8 +22,8 @@
     else
     {
         <div class="d-flex justify-content-center gap-2 mb-4">
-            <a class="btn btn-primary" asp-area="Identity" asp-page="/Home/Cadastrar">Criar conta</a>
-            <a class="btn btn-outline-secondary" asp-area="Identity" asp-page="/Home/Login">Entrar</a>
+            <a class="btn btn-primary" asp-action="Cadastrar">Criar conta</a>
+            <a class="btn btn-outline-secondary" asp-action="Login">Entrar</a>
         </div>
     }
 

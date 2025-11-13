@@ -1,0 +1,91 @@
+@* Ajuste o tipo/namespaces do modelo conforme seu projeto *@
+@model App.Dto.UsuarioCadastroDto
+
+@{
+    ViewData["Title"] = "Cadastrar";
+    Layout = "_Layout";
+}
+
+<div class="bg-dark text-light min-vh-100 py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card bg-dark border-secondary shadow">
+                    <div class="card-body p-4">
+                        <h1 class="h3 mb-3">Criar conta</h1>
+                        <p class="text-secondary mb-4">Preencha os campos para se cadastrar.</p>
+
+                        <form asp-action="Cadastrar" asp-controller="Home" method="post" novalidate>
+                            @Html.AntiForgeryToken()
+
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                            <div class="mb-3">
+                                <label asp-for="Nome" class="form-label">Nome</label>
+                                <input asp-for="Nome" class="form-control bg-dark text-light border-secondary" autocomplete="name" />
+                                <span asp-validation-for="Nome" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label">E-mail</label>
+                                <input asp-for="Email" type="email" class="form-control bg-dark text-light border-secondary" autocomplete="email" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label">Senha</label>
+                                <div class="input-group">
+                                    <input asp-for="Password" type="password" class="form-control bg-dark text-light border-secondary" autocomplete="new-password" />
+                                    <button type="button" class="btn btn-outline-secondary" id="togglePassword">Mostrar</button>
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="ConfirmPassword" class="form-label">Confirmar senha</label>
+                                <div class="input-group">
+                                    <input asp-for="ConfirmPassword" type="password" class="form-control bg-dark text-light border-secondary" autocomplete="new-password" />
+                                    <button type="button" class="btn btn-outline-secondary" id="toggleConfirmPassword">Mostrar</button>
+                                </div>
+                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
+
+                            <div class="text-center mt-3">
+                                <small class="text-secondary">Já tem conta?
+                                    <a asp-action="Login" asp-controller="Home" class="link-light">Entrar</a>
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <a asp-action="Index" asp-controller="Home" class="link-secondary">Voltar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script>
+        (function () {
+            const toggle = (btnId, inputSelector) => {
+                const btn = document.getElementById(btnId);
+                const input = document.querySelector(inputSelector);
+                if (!btn || !input) return;
+                btn.addEventListener('click', function () {
+                    const isPwd = input.getAttribute('type') === 'password';
+                    input.setAttribute('type', isPwd ? 'text' : 'password');
+                    this.textContent = isPwd ? 'Ocultar' : 'Mostrar';
+                });
+            };
+
+            toggle('togglePassword', 'input[name="Password"]');
+            toggle('toggleConfirmPassword', 'input[name="ConfirmPassword"]');
+        })();
+    </script>
+}
