@@ -1,4 +1,5 @@
 using App.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,11 +17,15 @@ public class HomeController : Controller
         _signInManager = signInManager;
     }
 
+    [HttpGet]
     public IActionResult Index()
     {
         return View();
     }
 
+    
+
+    [HttpGet, Authorize("Adm")]
     public IActionResult Privacy()
     {
         return View();
