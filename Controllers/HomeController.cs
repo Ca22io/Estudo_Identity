@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using App.Dto;
 using App.Models;
+using App.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,13 +11,14 @@ namespace App.Controllers;
 public class HomeController : Controller
 {
     private readonly UserManager<UsuarioModel> _userManager;
-
     private readonly SignInManager<UsuarioModel> _signInManager;
+    private readonly IEmailService _emailService;
 
-    public HomeController(UserManager<UsuarioModel> userManager, SignInManager<UsuarioModel> signInManager)
+    public HomeController(UserManager<UsuarioModel> userManager, SignInManager<UsuarioModel> signInManager, IEmailService emailService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _emailService = emailService;
     }
 
     [HttpGet]
@@ -42,7 +44,13 @@ public class HomeController : Controller
 
             if (resultado.Succeeded)
             {
-                await _signInManager.SignInAsync(usuarioModel, isPersistent: false, null);
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(usuarioModel);
+
+                await _emailService.EnviarEmail(
+                    usuario.Email,
+                    "Confirmação de E-mail",
+                    $"Por favor, confirme seu cadastro clicando <a href='https://localhost:7003/Home/ConfirmarEmail?userId={usuarioModel.Id}&token={Uri.EscapeDataString(token)}'>aqui</a>."
+                );
 
                 return RedirectToAction("Index", "Home");
             }

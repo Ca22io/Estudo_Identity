@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using App.Data;
 using App.Models;
+using App.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<UsuarioModel>(options =>
     {
-        options.SignIn.RequireConfirmedEmail = false;
+        options.SignIn.RequireConfirmedEmail = true;
         options.SignIn.RequireConfirmedAccount = false;
         options.Lockout.AllowedForNewUsers = true;
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
@@ -27,6 +28,11 @@ builder.Services.AddDefaultIdentity<UsuarioModel>(options =>
     })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.Configure<EmailModel>(builder.Configuration.GetSection("EmailSenderOptions"));
+
+// 2. Registra o serviço de email (substituindo o ConsoleEmailSender se ele estiver lá)
+builder.Services.AddSingleton<IEmailService, EmailService>();
+
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
 builder.Services.AddControllersWithViews();
@@ -35,8 +41,8 @@ var app = builder.Build();
 
 app.UseMigrationsEndPoint();
 
-app.UseExceptionHandler("/Home/Error");
-app.UseHsts();
+// app.UseExceptionHandler("/Home/Error");
+// app.UseHsts();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
