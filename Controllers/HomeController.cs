@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using App.Dto;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -96,4 +97,15 @@ public class HomeController : Controller
     {
         return View();
     }
-}
+
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error()
+    {
+        return View(new ErrorDto { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    public IActionResult SimularErro()
+    {
+        throw new Exception("Erro simulado para teste do manipulador de exceções.");
+    }
+}   

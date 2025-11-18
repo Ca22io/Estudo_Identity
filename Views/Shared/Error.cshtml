@@ -1,0 +1,19 @@
+@using App.Dto
+@model ErrorDto
+@{
+    ViewData["Title"] = "Erro";
+}
+
+<h1 class="text-danger">Oops!</h1>
+<h2 class="text-danger">Ocorreu um erro ao processar sua solicitação.</h2>
+
+@if (Model.ShowRequestId)
+{
+    <p>
+        <strong>Request ID:</strong> <code>@Model.RequestId</code>
+    </p>
+}
+
+<p>
+    Por favor, tente novamente mais tarde ou contate o suporte se o problema persistir.
+</p>

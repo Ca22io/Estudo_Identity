@@ -35,6 +35,9 @@ var app = builder.Build();
 
 app.UseMigrationsEndPoint();
 
+app.UseExceptionHandler("/Home/Error");
+app.UseHsts();
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

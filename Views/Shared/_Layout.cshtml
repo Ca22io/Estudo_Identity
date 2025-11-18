@@ -68,13 +68,13 @@
         </nav>
     </header>
 
-    <div class="container">
-        <main role="main" class="pb-3">
+    <div class="container d-flex flex-column flex-grow-1">
+        <main role="main" class="pb-3 h">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top border-secondary footer bg-dark text-light">
+    <footer class="border-top border-secondary footer bg-dark text-light py-3 mt-auto">
         <div class="container">
             &copy; @DateTime.Now.Year - Sistema de Cadastro
         </div>
