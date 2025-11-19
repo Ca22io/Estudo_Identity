@@ -115,6 +115,40 @@ public class HomeController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+
+    [HttpGet]
+    public IActionResult RecuperarSenha()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> RecuperarSenha(RecuperarSenhaDto modelo)
+    {
+        if (ModelState.IsValid)
+        {
+            var user = await _userManager.FindByEmailAsync(modelo.Email);
+            if (user != null)
+            {
+                // Lógica para gerar token e enviar e-mail de recuperação de senha
+                var tokenBruto = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var tokenCodificado = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(tokenBruto));
+
+                var link = Url.Action("RecuperarSenha", "Account", new { userId = user.Id, token = tokenCodificado }, Request.Scheme);
+                
+                await _emailService.EnviarEmail(
+                    user.Email,
+                    "Recuperação de Senha",
+                    $"Por favor, use o seguinte link para redefinir sua senha: <a href='{link}'>Redefinir Senha</a>"
+                );
+
+                ModelState.AddModelError(string.Empty, "Se o e-mail existir em nosso sistema, um link de recuperação foi enviado.");
+            }
+        }
+
+        return View();
+    }
+
     public IActionResult AcessoNegado()
     {
         return View();

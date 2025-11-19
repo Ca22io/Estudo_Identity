@@ -54,5 +54,65 @@ namespace App.Controllers
 
             return View(); 
         }
+
+        public async Task<IActionResult> RecuperarSenha(int userId, string token)
+        {
+            if (userId == 0 || token == null)
+            {
+                TempData["StatusMessage"] = "Erro: Parâmetros de redefinição de senha ausentes.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            
+            if (user == null)
+            {
+                TempData["StatusMessage"] = "Erro: Usuário não encontrado.";
+                return View();
+            }
+
+            // Decodifica o token
+            var tokenBytes = WebEncoders.Base64UrlDecode(token);
+            var tokenDecodificado = Encoding.UTF8.GetString(tokenBytes);
+
+            var model = new App.Dto.RecuperarSenhaDto
+            {
+                Email = user.Email,
+                Token = tokenDecodificado
+            };
+
+            return View(model); 
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RecuperarSenha(App.Dto.RecuperarSenhaDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                TempData["StatusMessage"] = "Erro: Usuário não encontrado.";
+                return View();
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+            if (result.Succeeded)
+            {
+                TempData["StatusMessage"] = "Senha redefinida com sucesso. Você já pode fazer login com sua nova senha.";
+                return RedirectToAction("Login", "Account");
+            }
+            else
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(model);
+            }
+        }
     }
 }
