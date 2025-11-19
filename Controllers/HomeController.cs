@@ -46,8 +46,6 @@ public class HomeController : Controller
 
             if (resultado.Succeeded)
             {
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(usuarioModel);
-
                 await EnviarLinkDeConfirmacao(usuarioModel);
 
                 return RedirectToAction("Index", "Home");
