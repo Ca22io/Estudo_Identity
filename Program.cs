@@ -28,7 +28,7 @@ builder.Services.AddDefaultIdentity<UsuarioModel>(options =>
     })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.Configure<EmailModel>(builder.Configuration.GetSection("EmailSenderOptions"));
+builder.Services.Configure<EmailModel>(builder.Configuration.GetSection("EmailSettings"));
 
 // 2. Registra o serviço de email (substituindo o ConsoleEmailSender se ele estiver lá)
 builder.Services.AddSingleton<IEmailService, EmailService>();

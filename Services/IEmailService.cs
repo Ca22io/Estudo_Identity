@@ -2,6 +2,6 @@ namespace App.Services
 {
     public interface IEmailService
     {
-        Task EnviarEmail(string email, string subject, string htmlMessage);
+        Task EnviarEmail(string emailDestino, string assunto, string mensagemTexto);
     }
 }

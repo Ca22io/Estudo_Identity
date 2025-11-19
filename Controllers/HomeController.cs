@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using System.Text;
 using App.Dto;
 using App.Models;
 using App.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace App.Controllers;
 
@@ -46,11 +48,7 @@ public class HomeController : Controller
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(usuarioModel);
 
-                await _emailService.EnviarEmail(
-                    usuario.Email,
-                    "Confirmação de E-mail",
-                    $"Por favor, confirme seu cadastro clicando <a href='https://localhost:7003/Home/ConfirmarEmail?userId={usuarioModel.Id}&token={Uri.EscapeDataString(token)}'>aqui</a>."
-                );
+                await EnviarLinkDeConfirmacao(usuarioModel);
 
                 return RedirectToAction("Index", "Home");
             }
@@ -82,7 +80,32 @@ public class HomeController : Controller
                 return RedirectToAction("Index");
             }
 
-            ModelState.AddModelError(string.Empty, "Login inválido.");
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user != null)
+            {
+                // Verifica se a senha estava correta, mas o e-mail não foi confirmado
+                if (!await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    // MENSAGEM PARA O USUÁRIO
+                    ModelState.AddModelError(string.Empty, "Seu e-mail ainda não foi confirmado. Uma nova mensagem de confirmação foi enviada.");
+                    
+                    // Lógica para REENVIAR o e-mail
+                    await EnviarLinkDeConfirmacao(user, "Reenvio de Confirmação de E-mail");
+                    
+                    return View();
+                }
+                
+                // Caso o erro seja devido a bloqueio por tentativas (lockout)
+                if (resultado.IsLockedOut)
+                {
+                    ModelState.AddModelError(string.Empty, "Sua conta está bloqueada devido a várias tentativas de login fracassadas. Tente novamente mais tarde.");
+                    return View();
+                }
+            }
+        
+            ModelState.AddModelError(string.Empty, "Credenciais inválidas ou conta não existe.");
+
         }
 
         return View();
@@ -115,5 +138,39 @@ public class HomeController : Controller
     public IActionResult SimularErro()
     {
         throw new Exception("Erro simulado para teste do manipulador de exceções.");
+    }
+
+    private async Task EnviarLinkDeConfirmacao(UsuarioModel user, string assunto = "Confirmação de E-mail")
+    {
+        // 1. Gera o token Base64 (com caracteres não seguros)
+        var tokenBruto = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+        // 2. CODIFICAÇÃO: Converte o token bruto para bytes e depois para Base64 URL-seguro.
+        var tokenCodificado = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(tokenBruto));
+
+        // 3. Usa o token CODIFICADO na URL
+        var link = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = tokenCodificado }, Request.Scheme);
+
+        var corpoEmail = $@"
+            <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
+            <h2>Confirme seu endereço de e-mail</h2>
+            <p>Olá {user.Nome},</p>
+            <p>Obrigado por se cadastrar. Por favor, clique no botão abaixo para confirmar seu e-mail e ativar sua conta.</p>
+            <p style='text-align: center;'>
+                <a href='{link}' style='background-color: #007bff; color: white; padding: 14px 25px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px; font-size: 16px;'>
+                Confirmar E-mail
+                </a>
+            </p>
+            <p>Se o botão acima não funcionar, copie e cole o seguinte link no seu navegador:</p>
+            <p><a href='{link}'>{link}</a></p>
+            <hr>
+            <p><small>Se você não criou esta conta, por favor, ignore este e-mail.</small></p>
+            </div>";
+
+        await _emailService.EnviarEmail(
+            user.Email,
+            assunto,
+            corpoEmail
+        );
     }
 }   

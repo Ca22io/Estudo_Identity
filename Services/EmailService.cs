@@ -1,57 +1,67 @@
-using Microsoft.AspNetCore.Identity.UI.Services;
-using System.Net;
-using System.Net.Mail;
-using Microsoft.Extensions.Options;
 using App.Models;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.Extensions.Options;
+using MimeKit;
 
 namespace App.Services // Substitua pelo seu namespace
 {
     // Implementa a interface IEmailSender exigida pelo Identity
     public class EmailService : IEmailService
     {
-        private readonly EmailModel _options;
+        private readonly EmailModel _settings;
 
         // Injeta as opções lidas do appsettings.json
-        public EmailService(IOptions<EmailModel> optionsAccessor)
+        public EmailService(IOptions<EmailModel> settings)
         {
-            _options = optionsAccessor.Value;
+            _settings = settings.Value;
         }
 
-        public Task EnviarEmail(string email, string subject, string htmlMessage)
+        public async Task EnviarEmail(string emailDestino, string assunto, string mensagemTexto)
         {
-            try
-            {
-                var message = new MailMessage();
-                
-                // Endereço de envio será o mesmo do UserName
-                message.From = new MailAddress(_options.UserName, _options.SenderName); 
-                
-                // Endereço de destino
-                message.To.Add(new MailAddress(email)); 
-                
-                // Assunto e corpo
-                message.Subject = subject;
-                message.Body = htmlMessage;
-                message.IsBodyHtml = true;
+            // 1. Criação da Mensagem (MimeMessage)
+            var message = new MimeMessage();
+            
+            // Quem envia
+            message.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
+            
+            // Para quem vai
+            message.To.Add(MailboxAddress.Parse(emailDestino));
+            
+            // Assunto
+            message.Subject = assunto;
 
-                // Configuração do cliente SMTP (Gmail)
-                using (var client = new SmtpClient(_options.Host, _options.Port))
+            // Corpo do E-mail
+            var builder = new BodyBuilder
+            {
+                HtmlBody = mensagemTexto // Ou TextBody se for texto puro
+            };
+            message.Body = builder.ToMessageBody();
+
+            // 2. Conexão e Envio (SmtpClient do MailKit)
+            using (var client = new SmtpClient())
+            {
+                try
                 {
-                    client.EnableSsl = _options.EnableSSL;
-                    client.UseDefaultCredentials = false;
-                    
-                    // Credenciais de autenticação (email e App Password)
-                    client.Credentials = new NetworkCredential(_options.UserName, _options.Password);
+                    // Conecta ao servidor (Use StartTls para porta 587 ou SslOnConnect para 465)
+                    await client.ConnectAsync(_settings.Server, _settings.Port, SecureSocketOptions.StartTls);
 
-                    // Envia a mensagem de forma assíncrona
-                    return client.SendMailAsync(message);
+                    // Autentica
+                    await client.AuthenticateAsync(_settings.Username, _settings.Password);
+
+                    // Envia
+                    await client.SendAsync(message);
                 }
-            }
-            catch (Exception ex)
-            {
-                // Em um projeto real, você logaria este erro (ex: Serilog)
-                Console.WriteLine($"Erro ao enviar email para {email}: {ex.Message}");
-                return Task.FromException(ex);
+                catch (Exception ex)
+                {
+                    // Logar o erro aqui
+                    throw new InvalidOperationException($"Erro ao enviar e-mail: {ex.Message}");
+                }
+                finally
+                {
+                    // Desconecta limpo
+                    await client.DisconnectAsync(true);
+                }
             }
         }
     }
