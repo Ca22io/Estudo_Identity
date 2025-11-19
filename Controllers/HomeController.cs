@@ -130,7 +130,7 @@ public class HomeController : Controller
             var user = await _userManager.FindByEmailAsync(modelo.Email);
             if (user != null)
             {
-                // Lógica para gerar token e enviar e-mail de recuperação de senha
+
                 var tokenBruto = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var tokenCodificado = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(tokenBruto));
 
