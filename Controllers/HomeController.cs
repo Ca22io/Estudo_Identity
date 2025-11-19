@@ -69,18 +69,17 @@ public class HomeController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Login(string email, string password, bool rememberMe)
+    public async Task<IActionResult> Login(UsuarioLoginDto usuario)
     {
         if (ModelState.IsValid)
         {
-            var resultado = await _signInManager.PasswordSignInAsync(email, password, isPersistent: rememberMe, lockoutOnFailure: false);
-
+            var resultado = await _signInManager.PasswordSignInAsync(usuario.Email, usuario.Password, isPersistent: usuario.RememberMe, lockoutOnFailure: false);
             if (resultado.Succeeded)
             {
                 return RedirectToAction("Index");
             }
 
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.FindByEmailAsync(usuario.Email);
 
             if (user != null)
             {

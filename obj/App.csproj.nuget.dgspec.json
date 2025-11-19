@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\casas\\OneDrive\\Documentos\\Estudo_Identity\\App.csproj": {}
+    "C:\\Users\\ca22i\\OneDrive\\Documentos\\Estudo_Identity\\App.csproj": {}
   },
   "projects": {
-    "C:\\Users\\casas\\OneDrive\\Documentos\\Estudo_Identity\\App.csproj": {
+    "C:\\Users\\ca22i\\OneDrive\\Documentos\\Estudo_Identity\\App.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\casas\\OneDrive\\Documentos\\Estudo_Identity\\App.csproj",
+        "projectUniqueName": "C:\\Users\\ca22i\\OneDrive\\Documentos\\Estudo_Identity\\App.csproj",
         "projectName": "App",
-        "projectPath": "C:\\Users\\casas\\OneDrive\\Documentos\\Estudo_Identity\\App.csproj",
-        "packagesPath": "C:\\Users\\casas\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\casas\\OneDrive\\Documentos\\Estudo_Identity\\obj\\",
+        "projectPath": "C:\\Users\\ca22i\\OneDrive\\Documentos\\Estudo_Identity\\App.csproj",
+        "packagesPath": "C:\\Users\\ca22i\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ca22i\\OneDrive\\Documentos\\Estudo_Identity\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\casas\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\ca22i\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -91,7 +91,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.416/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.412/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

@@ -1,38 +1,49 @@
-@page
-@model App.Views.Account.ConfirmEmailModel
 @{
     // Define o título da página
     ViewData["Title"] = "Confirmação de E-mail";
+    // Obtém a mensagem de status do TempData
+    var statusMessage = TempData["StatusMessage"] as string;
+    // Determina se a operação foi um sucesso para estilização condicional
+    var isSuccess = !string.IsNullOrEmpty(statusMessage) && statusMessage.Contains("Obrigado");
 }
 
-<header>
-    <h1 class="text-3xl font-bold mb-6 text-gray-800">@ViewData["Title"]</h1>
-</header>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card bg-dark text-white shadow-lg">
+                <div class="card-header">
+                    <h1 class="h3 mb-0">@ViewData["Title"]</h1>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(statusMessage))
+                    {
+                        // Define a classe do alerta com base no sucesso ou falha
+                        var alertClass = isSuccess ? "alert-success" : "alert-danger";
 
-<div class="bg-white p-6 rounded-lg shadow-md max-w-lg mx-auto">
-    <!-- Exibe a mensagem de status (sucesso ou erro) -->
-    @if (!string.IsNullOrEmpty(Model.StatusMessage))
-    {
-        <div class="p-4 rounded-lg 
-            @(Model.StatusMessage.Contains("Obrigado") ? "bg-green-100 border-green-400 text-green-700" : "bg-red-100 border-red-400 text-red-700") 
-            border-l-4" role="alert">
-            <p class="font-bold">Status da Confirmação:</p>
-            <p>@Model.StatusMessage</p>
-        </div>
-        
-        <!-- Botão amigável para Login após a confirmação -->
-        @if (Model.StatusMessage.Contains("Obrigado"))
-        {
-            <div class="mt-6 text-center">
-                <a asp-page="./Login" class="inline-block px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Ir para Login
-                </a>
+                        <div class="@($"alert {alertClass}")" role="alert">
+                            <h4 class="alert-heading">Status da Confirmação:</h4>
+                            <p>@statusMessage</p>
+                        </div>
+
+                        // Se a confirmação foi bem-sucedida, exibe o botão de login
+                        @if (isSuccess)
+                        {
+                            <hr class="border-secondary">
+                            <div class="text-center mt-4">
+                                <p class="mb-3">Você já pode acessar sua conta.</p>
+                                <a asp-controller="Home" asp-action="Login" class="btn btn-primary btn-lg">
+                                    Ir para Login
+                                </a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        // Mensagem de fallback caso não haja StatusMessage
+                        <p class="text-muted">A confirmação do seu e-mail está sendo processada...</p>
+                    }
+                </div>
             </div>
-        }
-    }
-    else
-    {
-        <!-- Mensagem de fallback caso não haja StatusMessage (não deve acontecer no fluxo normal) -->
-        <p class="text-gray-600">A confirmação do seu e-mail está sendo processada...</p>
-    }
+        </div>
+    </div>
 </div>

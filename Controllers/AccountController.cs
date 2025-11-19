@@ -10,10 +10,6 @@ namespace App.Controllers
     {
         private readonly UserManager<UsuarioModel> _userManager;
 
-        // Propriedade para mostrar o status na View
-        [TempData]
-        public string? StatusMessage { get; set; }
-
         public AccountController(UserManager<UsuarioModel> userManager)
         {
             _userManager = userManager;
@@ -24,7 +20,7 @@ namespace App.Controllers
         {
             if (userId == 0 || token == null)
             {
-                StatusMessage = "Erro: Parâmetros de confirmação ausentes.";
+                TempData["StatusMessage"] = "Erro: Parâmetros de confirmação ausentes.";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -32,7 +28,7 @@ namespace App.Controllers
             
             if (user == null)
             {
-                StatusMessage = "Erro: Usuário não encontrado.";
+                TempData["StatusMessage"] = "Erro: Usuário não encontrado.";
                 return View();
             }
 
@@ -49,11 +45,11 @@ namespace App.Controllers
 
             if (result.Succeeded)
             {
-                StatusMessage = "Obrigado por confirmar seu e-mail. Você já pode fazer login!";
+                TempData["StatusMessage"] = "Obrigado por confirmar seu e-mail. Você já pode fazer login!";
             }
             else
             {
-                StatusMessage = "Erro: O token de confirmação é inválido ou expirou. Tente registrar-se novamente.";
+                TempData["StatusMessage"] = "Erro: O token de confirmação é inválido ou expirou. Tente registrar-se novamente.";
             }
 
             return View(); 
