@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using App.Models;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
+using App.Dto;
 
 namespace App.Controllers
 {
@@ -71,21 +72,17 @@ namespace App.Controllers
                 return View();
             }
 
-            // Decodifica o token
-            var tokenBytes = WebEncoders.Base64UrlDecode(token);
-            var tokenDecodificado = Encoding.UTF8.GetString(tokenBytes);
-
-            var model = new App.Dto.RecuperarSenhaDto
+            var model = new RecuperarSenhaDto
             {
                 Email = user.Email,
-                Token = tokenDecodificado
+                Token = token
             };
 
             return View(model); 
         }
 
         [HttpPost]
-        public async Task<IActionResult> RecuperarSenha(App.Dto.RecuperarSenhaDto model)
+        public async Task<IActionResult> RecuperarSenha(RecuperarSenhaDto model)
         {
             if (!ModelState.IsValid)
             {
@@ -93,13 +90,18 @@ namespace App.Controllers
             }
 
             var user = await _userManager.FindByEmailAsync(model.Email);
+
             if (user == null)
             {
                 TempData["StatusMessage"] = "Erro: Usuário não encontrado.";
                 return View();
             }
 
-            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+            var tokenBytes = WebEncoders.Base64UrlDecode(model.Token);
+            var tokenDecodificado = Encoding.UTF8.GetString(tokenBytes);
+
+            var result = await _userManager.ResetPasswordAsync(user, tokenDecodificado, model.Password);
+
             if (result.Succeeded)
             {
                 TempData["StatusMessage"] = "Senha redefinida com sucesso. Você já pode fazer login com sua nova senha.";
