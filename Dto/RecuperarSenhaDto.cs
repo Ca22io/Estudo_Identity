@@ -10,7 +10,6 @@ namespace App.Dto
         [EmailAddress(ErrorMessage = "O email informado não é válido.")]
         public string? Email { get; set; }
 
-        [Required]
         [DataType(DataType.Password)]
         [Display(Name = "Nova Senha")]
         [MinLength(6, ErrorMessage = "A senha deve ter no mínimo 6 caracteres.")]
@@ -21,7 +20,6 @@ namespace App.Dto
         [Compare("Password", ErrorMessage = "A nova senha e a confirmação de senha não coincidem.")]
         public string? ConfirmPassword { get; set; }
 
-        [Required]
         public string? Token { get; set; }
     }
 }
