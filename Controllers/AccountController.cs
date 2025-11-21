@@ -105,7 +105,7 @@ namespace App.Controllers
             if (result.Succeeded)
             {
                 TempData["StatusMessage"] = "Senha redefinida com sucesso. Você já pode fazer login com sua nova senha.";
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Login", "Home");
             }
             else
             {
