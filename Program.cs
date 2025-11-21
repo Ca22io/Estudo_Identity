@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using App.Data;
 using App.Models;
 using App.Services;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<UsuarioModel>(options =>
+builder.Services.AddIdentity<UsuarioModel, IdentityRole<int>>(options =>
     {
         options.SignIn.RequireConfirmedEmail = true;
         options.SignIn.RequireConfirmedAccount = false;
@@ -30,7 +31,6 @@ builder.Services.AddDefaultIdentity<UsuarioModel>(options =>
 
 builder.Services.Configure<EmailModel>(builder.Configuration.GetSection("EmailSettings"));
 
-// 2. Registra o serviço de email (substituindo o ConsoleEmailSender se ele estiver lá)
 builder.Services.AddSingleton<IEmailService, EmailService>();
 
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
@@ -38,6 +38,11 @@ builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    await IdentitySeeder.SeedAdminAsync(scope);
+}
 
 app.UseMigrationsEndPoint();
 
