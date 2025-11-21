@@ -4,6 +4,8 @@ using App.Models;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using App.Dto;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace App.Controllers
 {
@@ -115,6 +117,54 @@ namespace App.Controllers
                 }
                 return View(model);
             }
+        }
+
+        [Authorize]
+        public IActionResult TrocarSenha()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken] // Proteção CSRF obrigatória!
+        public async Task<IActionResult> TrocarSenha(TrocarSenhaDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.GetUserAsync(User); 
+            
+            if (user == null)
+            {
+                return NotFound($"Não foi possível carregar o usuário com ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            // 3. Chamar a Função de Troca de Senha do Identity
+            var result = await _userManager.ChangePasswordAsync(
+                user, 
+                model.SenhaAntiga, 
+                model.NovaSenha
+            );
+
+            // 4. Analisar o Resultado
+            if (result.Succeeded)
+            {
+
+                await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+                
+                TempData["StatusMessage"] = "Sua senha foi alterada com sucesso. Faça login novamente.";
+                return RedirectToAction("Login", "Home"); 
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            
+            return View(model);
         }
     }
 }
