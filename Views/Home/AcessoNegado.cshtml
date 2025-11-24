@@ -1,0 +1,12 @@
+@{
+    ViewData["Title"] = "Acesso Negado";
+    Layout = "_Layout";
+}
+
+<div class="alert alert-danger text-center">
+    <h1 class="display-4">🚫 Acesso Negado</h1>
+    <p class="lead">Você não tem permissão para acessar este recurso.</p>
+    <hr />
+    <p>Se você acredita que isso é um erro, contate o administrador do sistema.</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Voltar para página inicial</a>
+</div>

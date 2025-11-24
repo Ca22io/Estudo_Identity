@@ -61,22 +61,21 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    public IActionResult Login()
+    public IActionResult Login(string returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
+
         return View();
     }
 
     [HttpPost]
-    public async Task<IActionResult> Login(UsuarioLoginDto usuario)
+    public async Task<IActionResult> Login(UsuarioLoginDto usuario, string returnUrl = null)
     {
+        // Define uma rota padrão caso o returnUrl seja nulo
+        returnUrl ??= Url.Content("~/");
+
         if (ModelState.IsValid)
         {
-            var resultado = await _signInManager.PasswordSignInAsync(usuario.Email, usuario.Password, isPersistent: usuario.RememberMe, lockoutOnFailure: false);
-            if (resultado.Succeeded)
-            {
-                return RedirectToAction("Index");
-            }
-
             var user = await _userManager.FindByEmailAsync(usuario.Email);
 
             if (user != null)
@@ -92,19 +91,35 @@ public class HomeController : Controller
                     
                     return View();
                 }
-                
-                // Caso o erro seja devido a bloqueio por tentativas (lockout)
-                if (resultado.IsLockedOut)
+        
+            }
+
+            var resultado = await _signInManager.PasswordSignInAsync(usuario.Email, usuario.Password, isPersistent: usuario.RememberMe, lockoutOnFailure: false);
+
+            if (resultado.Succeeded)
+            {
+                if (Url.IsLocalUrl(returnUrl))
                 {
-                    ModelState.AddModelError(string.Empty, "Sua conta está bloqueada devido a várias tentativas de login fracassadas. Tente novamente mais tarde.");
-                    return View();
+                    return LocalRedirect(returnUrl);
                 }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+
+            // Caso o erro seja devido a bloqueio por tentativas (lockout)
+            if (resultado.IsLockedOut)
+            {
+                ModelState.AddModelError(string.Empty, "Sua conta está bloqueada devido a várias tentativas de login fracassadas. Tente novamente mais tarde.");
+                return View();
             }
         
             ModelState.AddModelError(string.Empty, "Credenciais inválidas ou conta não existe.");
-
         }
 
+        // Se falhar, devolvemos o returnUrl para a View para tentar de novo
+        ViewData["ReturnUrl"] = returnUrl;
         return View();
     }
 
@@ -148,13 +163,8 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpGet]
     public IActionResult AcessoNegado()
-    {
-        return View();
-    }
-
-    [HttpGet, Authorize("Adm")]
-    public IActionResult Privado()
     {
         return View();
     }

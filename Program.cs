@@ -29,6 +29,17 @@ builder.Services.AddIdentity<UsuarioModel, IdentityRole<int>>(options =>
     })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Home/Login"; 
+    
+    options.AccessDeniedPath = "/Home/AcessoNegado"; 
+    
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60); 
+    
+    options.SlidingExpiration = true;
+});
+
 builder.Services.Configure<EmailModel>(builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddSingleton<IEmailService, EmailService>();
