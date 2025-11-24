@@ -1,4 +1,5 @@
 // Em Controllers/AdminController.cs
+using App.Dto;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +17,33 @@ public class AdminController : Controller
     {
         _userManager = userManager;
         _roleManager = roleManager;
+    }
+
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Usuarios()
+    {
+        // Obtém todos os usuários
+        var users = _userManager.Users.ToList(); 
+
+        // Mapeia para o ViewModel
+        var usuarios = new List<UsuariosDto>();
+
+        foreach (var user in users)
+        {
+            var is_admin = await _userManager.IsInRoleAsync(user, "Admin");
+
+            usuarios.Add(new UsuariosDto
+            {
+                Id = user.Id,
+                Nome = user.Nome,
+                Email = user.Email,
+                Admin = is_admin
+            });
+        }
+
+        Console.WriteLine(usuarios.FindAll(u => u.Admin));
+
+        return View(usuarios);
     }
 
 }

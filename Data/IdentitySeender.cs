@@ -29,7 +29,7 @@ public static class IdentitySeeder
         }
         
         const string adminEmail = "admin@seuprojeto.com";
-        const string adminPassword = "Admin123*"; 
+        const string adminPassword = "1234a*";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
         if (adminUser == null)
