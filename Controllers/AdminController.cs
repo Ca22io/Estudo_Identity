@@ -19,31 +19,89 @@ public class AdminController : Controller
         _roleManager = roleManager;
     }
 
+    [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Usuarios()
     {
-        // Obtém todos os usuários
-        var users = _userManager.Users.ToList(); 
+        var usuarios = _userManager.Users.ToList(); 
 
-        // Mapeia para o ViewModel
-        var usuarios = new List<UsuariosDto>();
+        var usuariosDto = new List<UsuariosDto>();
 
-        foreach (var user in users)
+        foreach (var user in usuarios)
         {
-            var is_admin = await _userManager.IsInRoleAsync(user, "Admin");
+            var admin = await _userManager.IsInRoleAsync(user, "Admin");
 
-            usuarios.Add(new UsuariosDto
+            usuariosDto.Add(new UsuariosDto
             {
                 Id = user.Id,
                 Nome = user.Nome,
                 Email = user.Email,
-                Admin = is_admin
+                Admin = admin
             });
         }
 
-        Console.WriteLine(usuarios.FindAll(u => u.Admin));
-
-        return View(usuarios);
+        return View(usuariosDto);
     }
 
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public IActionResult Alterar(int id)
+    {
+        var usuario = _userManager.FindByIdAsync(id.ToString()).Result;
+
+        var usuarioDto = new UsuariosDto
+        {
+            Id = usuario.Id,
+            Nome = usuario.Nome,
+            Email = usuario.Email,
+            Admin = _userManager.IsInRoleAsync(usuario, "Admin").Result
+        };
+
+        return View(usuarioDto);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Alterar(UsuariosDto usuario)
+    {
+        var usuarioExistente = await _userManager.FindByIdAsync(usuario.Id.ToString());
+        if (usuarioExistente == null)
+        {
+            return NotFound();
+        }
+
+        usuarioExistente.Nome = usuario.Nome;
+        usuarioExistente.Email = usuario.Email;
+        usuarioExistente.UserName = usuario.Email;
+
+        await _userManager.UpdateAsync(usuarioExistente);
+
+        var admin = await _userManager.IsInRoleAsync(usuarioExistente, "Admin");
+
+        if (usuario.Admin == admin)
+        {
+            await _userManager.AddToRoleAsync(usuarioExistente, "Admin");
+        }
+        else if (usuario.Admin == false && admin)
+        {
+            await _userManager.RemoveFromRoleAsync(usuarioExistente, "Admin");
+        }
+
+        return RedirectToAction("Usuarios");
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public IActionResult Excluir(int id)
+    {
+        var usuarioExistente = _userManager.FindByIdAsync(id.ToString()).Result;
+        if (usuarioExistente == null)
+        {
+            return NotFound();
+        }
+        
+        var resultado = _userManager.DeleteAsync(usuarioExistente).Result;
+
+        return RedirectToAction("Usuarios");
+    }
 }
