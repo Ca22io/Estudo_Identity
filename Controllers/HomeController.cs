@@ -115,7 +115,6 @@ public class HomeController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-
     [HttpGet]
     public IActionResult RecuperarSenha()
     {
