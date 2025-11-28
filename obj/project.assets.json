@@ -6520,11 +6520,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ca22i\\OneDrive\\Documentos\\Estudo_Identity\\App.csproj",
+      "projectUniqueName": "C:\\Users\\ca22i\\OneDrive\\Documentos\\Portifolio\\Estudo_Identity\\App.csproj",
       "projectName": "App",
-      "projectPath": "C:\\Users\\ca22i\\OneDrive\\Documentos\\Estudo_Identity\\App.csproj",
+      "projectPath": "C:\\Users\\ca22i\\OneDrive\\Documentos\\Portifolio\\Estudo_Identity\\App.csproj",
       "packagesPath": "C:\\Users\\ca22i\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ca22i\\OneDrive\\Documentos\\Estudo_Identity\\obj\\",
+      "outputPath": "C:\\Users\\ca22i\\OneDrive\\Documentos\\Portifolio\\Estudo_Identity\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\ca22i\\AppData\\Roaming\\NuGet\\NuGet.Config"
