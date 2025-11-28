@@ -45,6 +45,8 @@ builder.Services.Configure<EmailModel>(builder.Configuration.GetSection("EmailSe
 
 builder.Services.AddSingleton<IEmailService, EmailService>();
 
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
 builder.Services.AddControllersWithViews();
