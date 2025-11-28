@@ -3,7 +3,6 @@ using System.Text;
 using App.Dto;
 using App.Models;
 using App.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -13,14 +12,16 @@ namespace App.Controllers;
 public class HomeController : Controller
 {
     private readonly UserManager<UsuarioModel> _userManager;
-    private readonly SignInManager<UsuarioModel> _signInManager;
+
     private readonly IEmailService _emailService;
 
-    public HomeController(UserManager<UsuarioModel> userManager, SignInManager<UsuarioModel> signInManager, IEmailService emailService)
+    private readonly IUsuarioService _usuarioService;
+
+    public HomeController(UserManager<UsuarioModel> userManager, IEmailService emailService, IUsuarioService usuarioService)
     {
         _userManager = userManager;
-        _signInManager = signInManager;
         _emailService = emailService;
+        _usuarioService = usuarioService;
     }
 
     [HttpGet]
@@ -40,20 +41,29 @@ public class HomeController : Controller
     {
         if (ModelState.IsValid)
         {
-            var usuarioModel = new UsuarioModel { UserName = usuario.Email, Email = usuario.Email, Nome = usuario.Nome, Cpf = usuario.Cpf };
-
-            var resultado = await _userManager.CreateAsync(usuarioModel, usuario.Password);
+            var resultado = await _usuarioService.CadastrarUsuarioAsync(usuario);
 
             if (resultado.Succeeded)
             {
-                await EnviarLinkDeConfirmacao(usuarioModel);
+                var user = await _userManager.FindByEmailAsync(usuario.Email);
+
+                // 1. Gera o token Base64 (com caracteres não seguros)
+                var tokenBruto = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                // 2. CODIFICAÇÃO: Converte o token bruto para bytes e depois para Base64 URL-seguro.
+                var tokenCodificado = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(tokenBruto));
+
+                // 3. Usa o token CODIFICADO na URL
+                var link = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = tokenCodificado }, Request.Scheme);
+
+                // Envia o e-mail de confirmação
+                await _emailService.EnviarLinkDeConfirmacao(user, link);
 
                 return RedirectToAction("Index", "Home");
             }
-
-            foreach (var erro in resultado.Errors)
+            else
             {
-                ModelState.AddModelError(string.Empty, erro.Description);
+                ModelState.AddModelError(string.Empty, "Falha ao cadastrar usuário.");
             }
         }
 
@@ -85,16 +95,25 @@ public class HomeController : Controller
                 {
                     // MENSAGEM PARA O USUÁRIO
                     ModelState.AddModelError(string.Empty, "Seu e-mail ainda não foi confirmado. Uma nova mensagem de confirmação foi enviada.");
-                    
-                    // Lógica para REENVIAR o e-mail
-                    await EnviarLinkDeConfirmacao(user, "Reenvio de Confirmação de E-mail");
+
+                    // 1. Gera o token Base64 (com caracteres não seguros)
+                    var tokenBruto = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                    // 2. CODIFICAÇÃO: Converte o token bruto para bytes e depois para Base64 URL-seguro.
+                    var tokenCodificado = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(tokenBruto));
+
+                    // 3. Usa o token CODIFICADO na URL
+                    var link = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = tokenCodificado }, Request.Scheme);
+
+                    // Envia o e-mail de confirmação
+                    await _emailService.EnviarLinkDeConfirmacao(user, link, "Reenvio de Confirmação de E-mail");
                     
                     return View();
                 }
         
             }
 
-            var resultado = await _signInManager.PasswordSignInAsync(usuario.Email, usuario.Password, isPersistent: usuario.RememberMe, lockoutOnFailure: false);
+            var resultado = await _usuarioService.LoginUsuarioAsync(usuario);
 
             if (resultado.Succeeded)
             {
@@ -112,6 +131,7 @@ public class HomeController : Controller
             if (resultado.IsLockedOut)
             {
                 ModelState.AddModelError(string.Empty, "Sua conta está bloqueada devido a várias tentativas de login fracassadas. Tente novamente mais tarde.");
+
                 return View();
             }
         
@@ -126,7 +146,8 @@ public class HomeController : Controller
     [HttpPost]
     public async Task<IActionResult> Logout()
     {
-        await _signInManager.SignOutAsync();
+        await _usuarioService.LogoutUsuarioAsync();
+
         return RedirectToAction("Index", "Home");
     }
 
@@ -142,10 +163,12 @@ public class HomeController : Controller
         if (ModelState.IsValid)
         {
             var user = await _userManager.FindByEmailAsync(modelo.Email);
+
             if (user != null)
             {
 
                 var tokenBruto = await _userManager.GeneratePasswordResetTokenAsync(user);
+
                 var tokenCodificado = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(tokenBruto));
 
                 var link = Url.Action("RecuperarSenha", "Account", new { userId = user.Id, token = tokenCodificado }, Request.Scheme);
@@ -178,39 +201,5 @@ public class HomeController : Controller
     public IActionResult SimularErro()
     {
         throw new Exception("Erro simulado para teste do manipulador de exceções.");
-    }
-
-    private async Task EnviarLinkDeConfirmacao(UsuarioModel user, string assunto = "Confirmação de E-mail")
-    {
-        // 1. Gera o token Base64 (com caracteres não seguros)
-        var tokenBruto = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-
-        // 2. CODIFICAÇÃO: Converte o token bruto para bytes e depois para Base64 URL-seguro.
-        var tokenCodificado = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(tokenBruto));
-
-        // 3. Usa o token CODIFICADO na URL
-        var link = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = tokenCodificado }, Request.Scheme);
-
-        var corpoEmail = $@"
-            <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
-            <h2>Confirme seu endereço de e-mail</h2>
-            <p>Olá {user.Nome},</p>
-            <p>Obrigado por se cadastrar. Por favor, clique no botão abaixo para confirmar seu e-mail e ativar sua conta.</p>
-            <p style='text-align: center;'>
-                <a href='{link}' style='background-color: #007bff; color: white; padding: 14px 25px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px; font-size: 16px;'>
-                Confirmar E-mail
-                </a>
-            </p>
-            <p>Se o botão acima não funcionar, copie e cole o seguinte link no seu navegador:</p>
-            <p><a href='{link}'>{link}</a></p>
-            <hr>
-            <p><small>Se você não criou esta conta, por favor, ignore este e-mail.</small></p>
-            </div>";
-
-        await _emailService.EnviarEmail(
-            user.Email,
-            assunto,
-            corpoEmail
-        );
     }
 }   

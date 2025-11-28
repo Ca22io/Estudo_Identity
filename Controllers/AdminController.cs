@@ -9,14 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 public class AdminController : Controller
 {
     private readonly UserManager<UsuarioModel> _userManager;
-    private readonly RoleManager<IdentityRole<int>> _roleManager;
 
-    public AdminController(
-        UserManager<UsuarioModel> userManager,
-        RoleManager<IdentityRole<int>> roleManager)
+    public AdminController(UserManager<UsuarioModel> userManager)
     {
         _userManager = userManager;
-        _roleManager = roleManager;
     }
 
     [HttpGet]
@@ -65,6 +61,7 @@ public class AdminController : Controller
     public async Task<IActionResult> Alterar(UsuariosDto usuario)
     {
         var usuarioExistente = await _userManager.FindByIdAsync(usuario.Id.ToString());
+
         if (usuarioExistente == null)
         {
             return NotFound();
